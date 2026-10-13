@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile, cp } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const configuredUrl = process.env.SITE_URL || 'https://vanyagufild666-commits.github.io/soza/';
+const configuredUrl = process.env.SITE_URL || 'https://soza55.ru/';
 const url = new URL(configuredUrl);
 if (url.protocol !== 'https:' || url.search || url.hash) throw new Error('SITE_URL must be an absolute HTTPS URL without query or hash');
 const siteUrl = url.href.endsWith('/') ? url.href : `${url.href}/`;
@@ -19,6 +19,7 @@ html = html.replaceAll('%%SITE_URL%%', siteUrl).replace('%%STRUCTURED_DATA%%', `
 if (/%%[A-Z_]+%%/.test(html)) throw new Error('Unresolved build placeholders');
 await mkdir(resolve(root, 'dist'), { recursive: true });
 await cp(resolve(root, 'src/assets'), resolve(root, 'dist/assets'), { recursive: true });
+await cp(resolve(root, 'src/apache.htaccess'), resolve(root, 'dist/.htaccess'));
 await writeFile(resolve(root, 'dist/index.html'), html);
 await writeFile(resolve(root, 'dist/robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}sitemap.xml\n`);
 const xml = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
