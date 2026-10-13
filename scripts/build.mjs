@@ -7,13 +7,13 @@ const url = new URL(configuredUrl);
 if (url.protocol !== 'https:' || url.search || url.hash) throw new Error('SITE_URL must be an absolute HTTPS URL without query or hash');
 const siteUrl = url.href.endsWith('/') ? url.href : `${url.href}/`;
 let html = await readFile(resolve(root, 'src/index.html'), 'utf8');
-const organization = {
-  '@type': 'Organization', '@id': `${siteUrl}#group`,
-  name: 'Собрания созависимых в Омске', url: siteUrl, telephone: '+79836212148',
-  address: { '@type': 'PostalAddress', addressLocality: 'Омск', streetAddress: 'ул. Нефтезаводская, 10, студия подкастов', addressCountry: 'RU' }
-};
+const pageTitle = html.match(/<title>(.*?)<\/title>/s)[1];
+const pageDescription = html.match(/<meta name="description" content="([^"]+)"/)[1];
+const topics = ['Собрание родителей зависимых', 'Реабилитация', 'Выбор реабилитационного центра', 'Качество реабилитации', 'Поддержка родственников зависимых', 'Созависимость'];
+const place = { '@type': 'Place', '@id': `${siteUrl}#meeting-place`, name: 'Студия подкастов, Нефтезаводская, 10', address: { '@type': 'PostalAddress', addressLocality: 'Омск', streetAddress: 'ул. Нефтезаводская, 10', addressCountry: 'RU' } };
+const video = { '@type': 'VideoObject', '@id': `${siteUrl}#invitation-video`, name: 'Евгений Билинзон: приглашение на собрание родителей о реабилитации в Омске', description: 'Бесплатное собрание для родителей, чьи дети находятся на реабилитации или готовятся к обращению в центр. Вопросы качества реабилитации и внутренних услуг центра. Дата и запись по телефону +7 983 621-21-48.', thumbnailUrl: `${siteUrl}assets/invitation-poster.jpg`, contentUrl: `${siteUrl}assets/invitation.mp4`, uploadDate: '2026-10-13T14:02:11Z', duration: 'PT45.13S', inLanguage: 'ru', about: topics.map(name => ({ '@type': 'Thing', name })) };
 const questions = [...html.matchAll(/<details><summary>(.*?)<\/summary><p>(.*?)<\/p><\/details>/gs)].map(([, question, answer]) => ({ '@type': 'Question', name: question, acceptedAnswer: { '@type': 'Answer', text: answer } }));
-const schema = { '@context': 'https://schema.org', '@graph': [organization, { '@type': 'WebPage', '@id': `${siteUrl}#page`, url: siteUrl, name: 'Собрания созависимых в Омске', inLanguage: 'ru-RU', about: { '@id': `${siteUrl}#group` } }, { '@type': 'FAQPage', '@id': `${siteUrl}#questions`, mainEntity: questions }] };
+const schema = { '@context': 'https://schema.org', '@graph': [{ '@type': 'WebPage', '@id': `${siteUrl}#page`, url: siteUrl, name: pageTitle, description: pageDescription, inLanguage: 'ru-RU', about: topics.map(name => ({ '@type': 'Thing', name })), video: { '@id': video['@id'] }, spatialCoverage: { '@id': place['@id'] } }, { '@type': 'FAQPage', '@id': `${siteUrl}#questions`, mainEntity: questions }, place, video] };
 const videoBlock = await readFile(resolve(root, 'src/video.html'), 'utf8');
 html = html.replaceAll('%%SITE_URL%%', siteUrl).replace('%%STRUCTURED_DATA%%', `<script type="application/ld+json">${JSON.stringify(schema).replaceAll('<', '\\u003c')}</script>`).replace('%%VIDEO_BLOCK%%', videoBlock);
 if (/%%[A-Z_]+%%/.test(html)) throw new Error('Unresolved build placeholders');
@@ -21,7 +21,8 @@ await mkdir(resolve(root, 'dist'), { recursive: true });
 await cp(resolve(root, 'src/assets'), resolve(root, 'dist/assets'), { recursive: true });
 await writeFile(resolve(root, 'dist/index.html'), html);
 await writeFile(resolve(root, 'dist/robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}sitemap.xml\n`);
-await writeFile(resolve(root, 'dist/sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${siteUrl.replaceAll('&', '&amp;')}</loc></url></urlset>\n`);
+const xml = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+await writeFile(resolve(root, 'dist/sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"><url><loc>${xml(siteUrl)}</loc><video:video><video:thumbnail_loc>${xml(video.thumbnailUrl)}</video:thumbnail_loc><video:title>${xml(video.name)}</video:title><video:description>${xml(video.description)}</video:description><video:content_loc>${xml(video.contentUrl)}</video:content_loc><video:duration>45</video:duration></video:video></url></urlset>\n`);
 await writeFile(resolve(root, 'dist/.nojekyll'), '');
-await writeFile(resolve(root, 'dist/404.html'), `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Страница не найдена</title><body style="background:#f8f7f2;color:#303d32;font:18px/1.7 Arial,sans-serif;padding:8vw"><h1>Страница не найдена</h1><p><a href="${siteUrl}">Перейти на сайт собраний созависимых в Омске</a></p><p><a href="tel:+79836212148">Связаться: +7 983 621-21-48</a></p></body></html>`);
+await writeFile(resolve(root, 'dist/404.html'), `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Страница не найдена</title><body style="background:#f8f7f2;color:#303d32;font:18px/1.7 Arial,sans-serif;padding:8vw"><h1>Страница не найдена</h1><p><a href="${siteUrl}">Перейти к приглашению на собрание родителей в Омске</a></p><p><a href="tel:+79836212148">Связаться: +7 983 621-21-48</a></p></body></html>`);
 console.log(`Built static site: ${siteUrl}`);

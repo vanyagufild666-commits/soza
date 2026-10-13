@@ -11,8 +11,18 @@ assert.ok(!/%%[A-Z_]+%%/.test(html), 'No unresolved placeholders');
 assert.ok(!/noindex/.test(html), 'Landing must allow indexing');
 assert.ok(!/(?:src|href)="http:\/\//.test(html), 'No mixed HTTP resources');
 const schema = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
-assert.equal(schema['@graph'][0].telephone, '+79836212148');
-assert.equal(schema['@graph'][2].mainEntity.length, 4);
+const faq = schema['@graph'].find(item => item['@type'] === 'FAQPage');
+const visibleFaq = [...html.matchAll(/<details><summary>(.*?)<\/summary><p>(.*?)<\/p><\/details>/gs)];
+assert.equal(faq.mainEntity.length, visibleFaq.length, 'Structured FAQ must match the visible FAQ');
+for (const [i, [, question, answer]] of visibleFaq.entries()) {
+  assert.equal(faq.mainEntity[i].name, question);
+  assert.equal(faq.mainEntity[i].acceptedAnswer.text, answer);
+}
+const video = schema['@graph'].find(item => item['@type'] === 'VideoObject');
+assert.equal(video.contentUrl, `${html.match(/rel="canonical" href="([^"]+)"/)[1]}assets/invitation.mp4`);
+assert.ok(html.includes(video.name), 'Video name must match its accessible label');
+assert.equal((html.match(/<video\b/g) || []).length, 1, 'Only one invitation player');
+assert.ok(!schema['@graph'].some(item => item['@type'] === 'Event'), 'Do not invent an event date');
 const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
 for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
   if (href.startsWith('#')) assert.ok(ids.has(href.slice(1)), `Missing anchor: ${href}`);

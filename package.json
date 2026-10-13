@@ -2,7 +2,7 @@
   "name": "soza-omsk",
   "version": "1.0.0",
   "private": true,
-  "description": "Лендинг собраний созависимых в Омске",
+  "description": "Бесплатное собрание родителей зависимых в Омске: реабилитация и поддержка близких",
   "type": "module",
   "engines": { "node": ">=22" },
   "scripts": {
