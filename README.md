@@ -18,7 +18,7 @@ npm run preview
 
 ## Публикация
 
-Workflow `.github/workflows/pages.yml` собирает и проверяет сайт при push и pull request. После включения Pages он публикует `dist/` при push в `main`: в Settings → Pages выберите источник **GitHub Actions**, затем добавьте переменную репозитория `GITHUB_PAGES_ENABLED=true` и запустите workflow. Для закрытого репозитория доступность Pages зависит от тарифа GitHub; публичность репозитория автоматически не меняется. Проверка API 13 октября 2026 года вернула: «Your current plan does not support GitHub Pages for this repository». До включения хостинга этап deploy пропускается, сборка и проверка работают.
+Workflow `.github/workflows/pages.yml` собирает и проверяет сайт при push и pull request. При переменной репозитория `PAGES_ENABLED=true` он публикует `dist/` в GitHub Pages при push в `main`. Источник Pages: **GitHub Actions**. Репозиторий открыт по разрешению владельца для размещения на текущем тарифе GitHub.
 
 Основной URL по умолчанию: `https://vanyagufild666-commits.github.io/soza/`. Для собственного домена установите переменную репозитория `SITE_URL` в полный HTTPS-адрес с завершающим `/`, настройте домен в Pages и повторите публикацию. Она обновит canonical, Open Graph, JSON-LD и sitemap. Нельзя менять URL только в метатегах без настройки самого хостинга.
 
