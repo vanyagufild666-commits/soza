@@ -18,7 +18,7 @@ for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
   if (href.startsWith('#')) assert.ok(ids.has(href.slice(1)), `Missing anchor: ${href}`);
   if (href.startsWith('tel:')) assert.equal(href, 'tel:+79836212148', 'Wrong contact phone');
 }
-for (const [, asset] of html.matchAll(/(?:src|href)="(assets\/[^"?#]+)"/g)) await access(resolve(root, asset));
+for (const [, asset] of html.matchAll(/(?:src|href|poster)="(assets\/[^"?#]+)"/g)) await access(resolve(root, asset));
 await access(resolve(root, 'assets/social.png'));
 const canonical = html.match(/rel="canonical" href="([^"]+)"/)[1];
 assert.ok(canonical.startsWith('https://'));
