@@ -32,7 +32,7 @@ Workflow `.github/workflows/pages.yml` собирает и проверяет с
 
 - Текст, контакты и FAQ: `src/index.html`; адрес, темы и данные видео: `scripts/build.mjs`. Title/description в JSON-LD берутся из HTML.
 - Оформление: `src/assets/styles.css`.
-- Приглашение: `src/video.html`. Видео из предоставленной истории https://vk.ru/story-48919992_456239127 сохранено с разрешения пользователя 13 октября 2026 года в `src/assets/invitation.mp4`; обложка — `src/assets/invitation-poster.jpg`. Плеер воспроизводит локальный MP4 без входа в VK, не зависит от срока жизни истории и использует `preload="metadata"` для предварительной загрузки метаданных без автоматического воспроизведения. Ссылка на оригинал оставлена под видео.
+- Приглашение: `src/video.html`. Видео из предоставленной истории https://vk.ru/story-48919992_456239127 сохранено с разрешения пользователя 13 октября 2026 года в `src/assets/invitation.mp4`; обложка — `src/assets/invitation-poster.jpg`. Плеер воспроизводит локальный MP4 без входа в VK, не зависит от срока жизни истории и использует `preload="none"` для загрузки видео только после действия посетителя. Ссылка на оригинал оставлена под видео.
 - Видео содержит полный ролик длительностью около 45,1 секунды без монтажных сокращений: H.264, 720×1280, 30 fps, yuv420p; звук AAC, 96 кбит/с. MP4 подготовлен с `faststart`. Исходный файл сохранён отдельно; учётные данные и временные URL VK не входят в репозиторий. Для замены обновите MP4 и обложку, затем проверьте воспроизведение и звук.
 - После любого изменения: сборка, проверка, просмотр страницы, push в `main`.
 
@@ -47,3 +47,7 @@ Workflow `.github/workflows/pages.yml` собирает и проверяет с
 Реализованные SEO-настройки не означают, что сайт уже проиндексирован или занимает позиции. Адрес и расписание нужно поддерживать актуальными; даты собраний не добавлять в Event-разметку до подтверждения.
 
 Первоисточники: [Google SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide), [Google Video SEO](https://developers.google.com/search/docs/appearance/video), [Яндекс: заголовок и описание](https://yandex.ru/support/webmaster/ru/search-results/title-and-description), [GitHub Pages: custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages). Проверены 13 октября 2026 года.
+
+## SEO-аудит 23 октября 2026
+
+Результаты и ограничения: `AUDIT.md`; карта запросов и план измерения: `SEO_PLAN.md`. Тематические страницы генерируются из `src/resources.json` через `scripts/resources.mjs`. Все 4 страницы включены в sitemap, связаны ссылками и имеют собственные canonical. CSS URL версионируется по содержимому, чтобы обходить старый кэш после обновлений. Готовые страницы опубликованы на REG.RU и проверены на соответствие сборке.
