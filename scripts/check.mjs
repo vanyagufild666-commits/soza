@@ -35,3 +35,29 @@ assert.ok(canonical.startsWith('https://'));
 assert.ok((await readFile(resolve(root, 'sitemap.xml'), 'utf8')).includes(`<loc>${canonical}</loc>`));
 assert.ok((await readFile(resolve(root, 'robots.txt'), 'utf8')).includes(`Sitemap: ${canonical}sitemap.xml`));
 console.log('Passed: contact links, navigation, local assets, SEO metadata, sitemap and structured data.');
+
+const resources = JSON.parse(await readFile(resolve(root, '../src/resources.json'), 'utf8'));
+const titles = new Set([html.match(/<title>(.*?)<\/title>/s)[1]]);
+const sitemap = await readFile(resolve(root, 'sitemap.xml'), 'utf8');
+for (const page of resources) {
+  const content = await readFile(resolve(root, page.path), 'utf8');
+  const title = content.match(/<title>(.*?)<\/title>/s)[1];
+  assert.ok(!titles.has(title), 'Distinct search intents need distinct titles');
+  titles.add(title);
+  assert.equal((content.match(/<h1\b/g) || []).length, 1);
+  assert.ok(content.includes(`rel="canonical" href="${canonical}${page.path}"`));
+  assert.ok(sitemap.includes(`<loc>${canonical}${page.path}</loc>`));
+  assert.ok(html.includes(`href="${page.path}"`), 'No orphan support pages');
+  assert.ok(!/%%[A-Z_]+%%|noindex/.test(content));
+  const graph = JSON.parse(content.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+  assert.ok(graph['@graph'].some(item => item['@type'] === 'BreadcrumbList'));
+  for (const [, href] of content.matchAll(/(?:href|src|poster)="([^"]+)"/g)) {
+    if (/^(https?:|tel:|#)/.test(href) || href.startsWith('./')) continue;
+    await access(resolve(root, href));
+  }
+  if (page.path === 'videopriglashenie.html') {
+    assert.equal((content.match(/<video\b/g) || []).length, 1);
+    assert.ok(graph['@graph'].some(item => item['@type'] === 'VideoObject'));
+  }
+}
+console.log('Passed: resource canonicals, distinct titles, discoverable links, sitemap, breadcrumbs, local video.');
