@@ -1,4 +1,5 @@
 import { buildResources } from './resources.mjs';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile, cp } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -28,6 +29,11 @@ await writeFile(resolve(root, 'dist/sitemap.xml'), `<?xml version="1.0" encoding
 await writeFile(resolve(root, 'dist/.nojekyll'), '');
 await writeFile(resolve(root, 'dist/404.html'), `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Страница не найдена</title><body style="background:#f8f7f2;color:#303d32;font:18px/1.7 Arial,sans-serif;padding:8vw"><h1>Страница не найдена</h1><p><a href="${siteUrl}">Перейти к приглашению на собрание родителей в Омске</a></p><p><a href="tel:+79836212148">Связаться: +7 983 621-21-48</a></p></body></html>`);
 const resources = await buildResources(root, siteUrl, video, videoBlock);
+const cssVersion = createHash('sha256').update(await readFile(resolve(root, 'dist/assets/styles.css'))).digest('hex').slice(0, 12);
+for (const page of ['index.html', ...resources.map(page => page.path)]) {
+  const file = resolve(root, 'dist', page);
+  await writeFile(file, (await readFile(file, 'utf8')).replaceAll('href="assets/styles.css"', `href="assets/styles.css?v=${cssVersion}"`));
+}
 const sitemapPath = resolve(root, 'dist/sitemap.xml');
 await writeFile(sitemapPath, (await readFile(sitemapPath, 'utf8')).replace('</urlset>', resources.map(page => `<url><loc>${xml(siteUrl + page.path)}</loc></url>`).join('') + '</urlset>'));
 console.log(`Built static site: ${siteUrl}`);

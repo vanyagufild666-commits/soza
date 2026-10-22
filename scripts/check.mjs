@@ -28,7 +28,7 @@ for (const [, href] of html.matchAll(/href="([^"]+)"/g)) {
   if (href.startsWith('#')) assert.ok(ids.has(href.slice(1)), `Missing anchor: ${href}`);
   if (href.startsWith('tel:')) assert.equal(href, 'tel:+79836212148', 'Wrong contact phone');
 }
-for (const [, asset] of html.matchAll(/(?:src|href|poster)="(assets\/[^"?#]+)"/g)) await access(resolve(root, asset));
+for (const [, asset] of html.matchAll(/(?:src|href|poster)="(assets\/[^"?#]+)"/g)) await access(resolve(root, asset.split('?')[0]));
 await access(resolve(root, 'assets/social.png'));
 const canonical = html.match(/rel="canonical" href="([^"]+)"/)[1];
 assert.ok(canonical.startsWith('https://'));
@@ -53,7 +53,7 @@ for (const page of resources) {
   assert.ok(graph['@graph'].some(item => item['@type'] === 'BreadcrumbList'));
   for (const [, href] of content.matchAll(/(?:href|src|poster)="([^"]+)"/g)) {
     if (/^(https?:|tel:|#)/.test(href) || href.startsWith('./')) continue;
-    await access(resolve(root, href));
+    await access(resolve(root, href.split('?')[0]));
   }
   if (page.path === 'videopriglashenie.html') {
     assert.equal((content.match(/<video\b/g) || []).length, 1);
